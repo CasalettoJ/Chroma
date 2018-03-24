@@ -5,3 +5,5 @@
 *.so
 *.dylib
 main
+chroma
+chroma_db

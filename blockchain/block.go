@@ -1,6 +1,9 @@
 package blockchain
 
 import (
+	"bytes"
+	"encoding/gob"
+	"log"
 	"time"
 )
 
@@ -11,6 +14,28 @@ type Block struct {
 	PrevHash  []byte
 	Hash      []byte
 	Nonce     int
+}
+
+// Serialize returns a byte array serialization
+func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+	err := encoder.Encode(b)
+	if err != nil {
+		log.Panic(err)
+	}
+	return result.Bytes()
+}
+
+// DeserializeBlock deserializes a byte array into a Block struct
+func DeserializeBlock(bbytes []byte) *Block {
+	var block Block
+	decoder := gob.NewDecoder(bytes.NewReader(bbytes))
+	err := decoder.Decode(&block)
+	if err != nil {
+		log.Panic(err)
+	}
+	return &block
 }
 
 // NewBlock creates a new block
