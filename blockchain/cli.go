@@ -50,7 +50,7 @@ func (cli *CLI) PrintChain() {
 		fmt.Printf("Tx Hash: %x\n", block.HashTransactions())
 		fmt.Printf("Hash: %x\n", block.Hash)
 		fmt.Println()
-		if len(block.PrevHash) == 0 {
+		if bci.IsGenesisBlock() {
 			break
 		}
 	}

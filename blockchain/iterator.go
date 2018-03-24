@@ -10,8 +10,21 @@ type Iterator struct {
 	DB          *bolt.DB
 }
 
-// Next returns the next block decrementing from the Tip
+// Next returns the current hash and decrements the current block hash to its previous
 func (i *Iterator) Next() *Block {
+	block := i.Peek()
+	i.CurrentHash = block.PrevHash
+	return block
+}
+
+// IsGenesisBlock returns whether the current hash points to the genesis block
+func (i *Iterator) IsGenesisBlock() bool {
+	block := i.Peek()
+	return len(block.PrevHash) == 0
+}
+
+// Peek returns the block at the current hash of the iterator
+func (i *Iterator) Peek() *Block {
 	var block *Block
 	CheckAnxiety(i.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(DBblocksbucket))
@@ -19,6 +32,5 @@ func (i *Iterator) Next() *Block {
 		block = DeserializeBlock(encodedBlock)
 		return nil
 	}))
-	i.CurrentHash = block.PrevHash
 	return block
 }

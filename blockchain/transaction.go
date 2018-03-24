@@ -7,24 +7,16 @@ import (
 	"fmt"
 )
 
-// TxOutput represents a transaction output
-type TxOutput struct {
-	Value        int
-	ScriptPubKey string
-}
-
-// TxInput represents a transaction input
-type TxInput struct {
-	TxID      []byte
-	Vout      int
-	ScriptSig string
-}
-
 // Transaction is a collection of inputs and outputs with its hashed data as an ID
 type Transaction struct {
 	ID   []byte
 	Vin  []TxInput
 	Vout []TxOutput
+}
+
+// IsCoinbaseTx identifies if the tx given is a coinbase tx based on inputs.
+func (tx *Transaction) IsCoinbaseTx() bool {
+	return len(tx.Vin) == 1 && len(tx.Vin[0].TxID) == 0 && tx.Vin[0].Vout == -1
 }
 
 // SetID hashes the data in the tx and sets it to the ID
