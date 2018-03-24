@@ -29,7 +29,7 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 func (pow *ProofOfWork) PrepareData(nonce int) []byte {
 	data := bytes.Join([][]byte{
 		pow.block.PrevHash,
-		pow.block.Data,
+		pow.block.HashTransactions(),
 		Int64ToByteArray(pow.block.Timestamp),
 		Int64ToByteArray(int64(targetBits)),
 		Int64ToByteArray(int64(nonce)),

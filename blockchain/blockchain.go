@@ -1,6 +1,9 @@
 package blockchain
 
 import (
+	"fmt"
+	"os"
+
 	bolt "github.com/coreos/bbolt"
 )
 
@@ -10,49 +13,50 @@ type Blockchain struct {
 	DB  *bolt.DB
 }
 
-// AddBlock adds a new block with given data to the blockchain
-func (bc *Blockchain) AddBlock(data string) {
-	var lasthash []byte
-	CheckAnxiety(bc.DB.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DBblocksbucket))
-		lasthash = bucket.Get([]byte(DBlasthash))
-		return nil
-	}))
-	newBlock := NewBlock(data, lasthash)
-	CheckAnxiety(bc.DB.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DBblocksbucket))
-		CheckAnxiety(bucket.Put(newBlock.Hash, newBlock.Serialize()))
-		CheckAnxiety(bucket.Put([]byte(DBlasthash), newBlock.Hash))
-		bc.Tip = newBlock.Hash
-		return nil
-	}))
-}
-
 // Iterator give iterator
 func (bc *Blockchain) Iterator() *Iterator {
 	iterator := &Iterator{bc.Tip, bc.DB}
 	return iterator
 }
 
-// NewBlockchain establishes a blockchain with a genesis block
-func NewBlockchain() *Blockchain {
+// OpenBlockchain opens a preexisting blockchain and returns Tip and DB
+func OpenBlockchain() *Blockchain {
+	if !DoesDBExist() {
+		fmt.Println("No existing Chroma chain.  Create DB first.")
+		os.Exit(1)
+	}
+
 	var tip []byte
 	db, err := bolt.Open(DBdbfile, 0600, nil)
 	CheckAnxiety(err)
 
 	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(DBblocksbucket))
-		if bucket != nil {
-			tip = bucket.Get([]byte(DBlasthash))
-		} else {
-			genesisBlock := GenerateGenesisBlock()
-			bucket, err := tx.CreateBucket([]byte(DBblocksbucket))
-			CheckAnxiety(err)
-			CheckAnxiety(bucket.Put(genesisBlock.Hash, genesisBlock.Serialize()))
-			CheckAnxiety(bucket.Put([]byte(DBlasthash), genesisBlock.Hash))
-			tip = genesisBlock.Hash
-		}
+		tip = bucket.Get([]byte(DBlasthash))
+		return nil
+	}))
+	bc := &Blockchain{DB: db, Tip: tip}
+	return bc
+}
 
+// CreateBlockchain establishes a blockchain with a genesis block
+func CreateBlockchain(address string) *Blockchain {
+	if DoesDBExist() {
+		fmt.Println("Chroma chain already exists.")
+		os.Exit(1)
+	}
+
+	var tip []byte
+	db, err := bolt.Open(DBdbfile, 0600, nil)
+	CheckAnxiety(err)
+
+	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
+		genesisBlock := GenerateGenesisBlock(NewCoinbaseTx(Message, address))
+		bucket, err := tx.CreateBucket([]byte(DBblocksbucket))
+		CheckAnxiety(err)
+		CheckAnxiety(bucket.Put(genesisBlock.Hash, genesisBlock.Serialize()))
+		CheckAnxiety(bucket.Put([]byte(DBlasthash), genesisBlock.Hash))
+		tip = genesisBlock.Hash
 		return nil
 	}))
 	return &Blockchain{tip, db}

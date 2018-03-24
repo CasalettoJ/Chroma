@@ -2,45 +2,51 @@ package blockchain
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
-	"log"
 	"time"
 )
 
 // Block is the collection of data and headers for a single entry in the blockchain
 type Block struct {
-	Timestamp int64
-	Data      []byte
-	PrevHash  []byte
-	Hash      []byte
-	Nonce     int
+	Timestamp    int64
+	Transactions []*Transaction
+	PrevHash     []byte
+	Hash         []byte
+	Nonce        int
 }
 
 // Serialize returns a byte array serialization
 func (b *Block) Serialize() []byte {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(b)
-	if err != nil {
-		log.Panic(err)
-	}
+	CheckAnxiety(encoder.Encode(b))
 	return result.Bytes()
+}
+
+// HashTransactions returns a []byte hash representation of all txIDs in a Tx
+func (b *Block) HashTransactions() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
+
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes, tx.ID)
+	}
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+	return txHash[:]
 }
 
 // DeserializeBlock deserializes a byte array into a Block struct
 func DeserializeBlock(bbytes []byte) *Block {
 	var block Block
 	decoder := gob.NewDecoder(bytes.NewReader(bbytes))
-	err := decoder.Decode(&block)
-	if err != nil {
-		log.Panic(err)
-	}
+	CheckAnxiety(decoder.Decode(&block))
 	return &block
 }
 
 // NewBlock creates a new block
-func NewBlock(data string, prevHash []byte) *Block {
-	block := &Block{time.Now().Unix(), []byte(data), prevHash, []byte{}, 0}
+func NewBlock(transactions []*Transaction, prevHash []byte) *Block {
+	block := &Block{time.Now().Unix(), transactions, prevHash, []byte{}, 0}
 	pow := NewProofOfWork(block)
 	nonce, hash := pow.Run()
 	block.Hash = hash
@@ -49,6 +55,6 @@ func NewBlock(data string, prevHash []byte) *Block {
 }
 
 // GenerateGenesisBlock creates a new genesis block for a new blockchain with a special message
-func GenerateGenesisBlock() *Block {
-	return NewBlock("09 F9 11 02 9D 74 E3 5B D8 41 56 C5 63 56 88 C0", []byte{})
+func GenerateGenesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{})
 }
