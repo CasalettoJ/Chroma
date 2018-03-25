@@ -20,25 +20,9 @@ func (bc *Blockchain) Iterator() *Iterator {
 	return iterator
 }
 
-// GetUTXOs gets all UTXOs unlockable by a given address
-func (bc *Blockchain) GetUTXOs(address string) []TxOutput {
-	var UTXOs []TxOutput
-	UTXs := bc.GetUTXs(address)
-
-	for _, tx := range UTXs {
-		for _, output := range tx.Vout {
-			if output.Unlockable(address) {
-				UTXOs = append(UTXOs, output)
-			}
-		}
-	}
-
-	return UTXOs
-}
-
-// GetUTXs gets all UTXs unlockable by given address
-func (bc *Blockchain) GetUTXs(address string) []Transaction {
-	var unspentTxs []Transaction
+// GetUTXOs gets all UTXOs in the blockchain
+func (bc *Blockchain) GetUTXOs() map[string]TxOutputs {
+	UTXOs := make(map[string]TxOutputs)
 	spentTXOs := make(map[string][]int)
 	bci := bc.Iterator()
 
@@ -60,21 +44,20 @@ func (bc *Blockchain) GetUTXs(address string) []Transaction {
 						}
 					}
 				}
-				// If the output hasn't been spent and it can be unlocked by the address, add it to the UTXOset.
-				if !spent && out.Unlockable(address) {
-					unspentTxs = append(unspentTxs, *tx)
+				// If the output hasn't been spent and it can be unlocked by the address, add tx to the UTXset.
+				if !spent {
+					outputs := UTXOs[txID]
+					outputs.Outputs = append(outputs.Outputs, out)
+					UTXOs[txID] = outputs
 				}
 			}
 			// If the transaction isn't a coinbase TX, then...
 			if !tx.IsCoinbaseTx() {
 				// For every input in the transaction...
 				for _, in := range tx.Vin {
-					// If this address was the one to unlock the output...
-					if in.InitiatedBy(address) {
-						inTxID := hex.EncodeToString(in.TxID)
-						// then add the input's output index to the list of spent TXOs for the tx its referenced UTXO was created in.
-						spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
-					}
+					inTxID := hex.EncodeToString(in.TxID)
+					// add the input's output index to the list of spent TXOs for the tx its referenced UTXO was created in.
+					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
 				}
 			}
 		}
@@ -83,7 +66,7 @@ func (bc *Blockchain) GetUTXs(address string) []Transaction {
 		}
 	}
 
-	return unspentTxs
+	return UTXOs
 }
 
 // OpenBlockchain opens a preexisting blockchain and returns Tip and DB
@@ -126,5 +109,6 @@ func CreateBlockchain(address string) *Blockchain {
 		tip = genesisBlock.Hash
 		return nil
 	}))
-	return &Blockchain{tip, db}
+	bc := &Blockchain{tip, db}
+	return bc
 }

@@ -5,10 +5,14 @@ const (
 	Message = "09 F9 11 02 9D 74 E3 5B D8 41 56 C5 63 56 88 C0"
 	// DBdbfile is the database filename
 	DBdbfile = "chroma_db"
-	// DBblocksbucket is the name of the bolt bucket the blocks are stored in
+	// DBblocksbucket is the name of the bolt bucket the blocks are stored in, keyed by hash.
 	DBblocksbucket = "blocks"
+	//DBtxbucket is the name of the bolt bucket transactions are stored in, keyed by ID.
+	DBtxbucket = "transactions"
+	//DButxobucket is the name of the bolt bucket UTXOs are stored in, keyed by TXID
+	DButxobucket = "utxoset"
 	// DBlasthash is the key the hash of the tip of the chain is stored in
-	DBlasthash = "l"
+	DBlasthash = "lasthash"
 
 	// CLIcreateblockchain is the command to create a new DB
 	CLIcreateblockchain = "createblockchain"

@@ -34,7 +34,8 @@ func ValidateArgs() {
 // CreateBlockchain creates a blockchain db
 func (cli *CLI) CreateBlockchain(address string) {
 	bc := CreateBlockchain(address)
-	bc.DB.Close()
+	defer bc.DB.Close()
+	ReindexUTXOs(bc)
 	fmt.Println("CHROMA chain created")
 }
 
@@ -73,7 +74,7 @@ func (cli *CLI) GetBalance(address string) {
 	total := 0
 	bc := OpenBlockchain()
 	defer bc.DB.Close()
-	UTXOs := bc.GetUTXOs(address)
+	UTXOs := GetUTXOsForAddress(bc, address)
 
 	for _, UTXO := range UTXOs {
 		total += UTXO.Value
