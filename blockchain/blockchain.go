@@ -20,8 +20,24 @@ func (bc *Blockchain) Iterator() *Iterator {
 	return iterator
 }
 
-// GetUTXOs gets all UTXOs unlockable by given address
-func (bc *Blockchain) GetUTXOs(address string) []Transaction {
+// GetUTXOs gets all UTXOs unlockable by a given address
+func (bc *Blockchain) GetUTXOs(address string) []TxOutput {
+	var UTXOs []TxOutput
+	UTXs := bc.GetUTXs(address)
+
+	for _, tx := range UTXs {
+		for _, output := range tx.Vout {
+			if output.Unlockable(address) {
+				UTXOs = append(UTXOs, output)
+			}
+		}
+	}
+
+	return UTXOs
+}
+
+// GetUTXs gets all UTXs unlockable by given address
+func (bc *Blockchain) GetUTXs(address string) []Transaction {
 	var unspentTxs []Transaction
 	spentTXOs := make(map[string][]int)
 	bci := bc.Iterator()
@@ -43,10 +59,10 @@ func (bc *Blockchain) GetUTXOs(address string) []Transaction {
 							spent = true
 						}
 					}
-					// If the output hasn't been spent and it can be unlocked by the address, add it to the UTXOset.
-					if !spent && out.Unlockable(address) {
-						unspentTxs = append(unspentTxs, *tx)
-					}
+				}
+				// If the output hasn't been spent and it can be unlocked by the address, add it to the UTXOset.
+				if !spent && out.Unlockable(address) {
+					unspentTxs = append(unspentTxs, *tx)
 				}
 			}
 			// If the transaction isn't a coinbase TX, then...
@@ -102,7 +118,7 @@ func CreateBlockchain(address string) *Blockchain {
 	CheckAnxiety(err)
 
 	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
-		genesisBlock := GenerateGenesisBlock(NewCoinbaseTx(Message, address))
+		genesisBlock := GenerateGenesisBlock(NewCoinbaseTx(address, Message))
 		bucket, err := tx.CreateBucket([]byte(DBblocksbucket))
 		CheckAnxiety(err)
 		CheckAnxiety(bucket.Put(genesisBlock.Hash, genesisBlock.Serialize()))

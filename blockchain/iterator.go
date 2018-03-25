@@ -19,8 +19,7 @@ func (i *Iterator) Next() *Block {
 
 // IsGenesisBlock returns whether the current hash points to the genesis block
 func (i *Iterator) IsGenesisBlock() bool {
-	block := i.Peek()
-	return len(block.PrevHash) == 0
+	return i.CurrentHash == nil
 }
 
 // Peek returns the block at the current hash of the iterator

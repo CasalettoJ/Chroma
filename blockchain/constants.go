@@ -12,8 +12,10 @@ const (
 
 	// CLIcreateblockchain is the command to create a new DB
 	CLIcreateblockchain = "createblockchain"
-	// CLIprintchain is the argument for printing the chain to the console
+	// CLIprintchain is the command for printing the chain to the console
 	CLIprintchain = "printchain"
+	// CLIgetbalance is the command for retrieving the balance of an address
+	CLIgetbalance = "getbalance"
 	// CLIaddress is an option flag for an address
 	CLIaddress = "address"
 
