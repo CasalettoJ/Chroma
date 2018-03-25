@@ -49,3 +49,44 @@ func ReindexUTXOs(bc *Blockchain) {
 		return nil
 	}))
 }
+
+// UpdateUTXOs takes the newest block, removes all outputs that were used as inputs in its transactions
+// and adds the outputs of each Tx as new UTXOs in the set.
+func UpdateUTXOs(bc *Blockchain, b *Block) {
+	db := bc.DB
+	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
+		utxoBucket := tx.Bucket([]byte(DButxobucket))
+		for _, transaction := range b.Transactions {
+			// If the tx is a coinbase tx, ignore the inputs entirely
+			if !transaction.IsCoinbaseTx() {
+				for _, input := range transaction.Vin {
+					// Check the last TX's output's index and if it wasn't the index used in the input (Vout)
+					// then it is still unspent and should be in the new UTXOs of the last TX.
+					updatedUTXOs := TxOutputs{}
+					prevTxUTXOsBytes := utxoBucket.Get(input.TxID)
+					prevTxUTXOs := DeserializeTxOutputs(prevTxUTXOsBytes)
+					for prevUTXOIndex, prevUTXO := range prevTxUTXOs.Outputs {
+						if input.Vout != prevUTXOIndex {
+							updatedUTXOs.Outputs = append(updatedUTXOs.Outputs, prevUTXO)
+						}
+					}
+					// Then if the TX has no more UTXOs remove it from the bucket
+					// Otherwise, update the TXID-indexed TxOutputs with the updated structure
+					if len(updatedUTXOs.Outputs) == 0 {
+						CheckAnxiety(utxoBucket.Delete(input.TxID))
+					} else {
+						CheckAnxiety(utxoBucket.Put(input.TxID, updatedUTXOs.Serialize()))
+					}
+				}
+			}
+
+			// Next, place all of the new TxOutputs from the new block into the UTXOset
+			newUTXOs := TxOutputs{}
+			for _, output := range transaction.Vout {
+				newUTXOs.Outputs = append(newUTXOs.Outputs, output)
+			}
+			CheckAnxiety(utxoBucket.Put(transaction.ID, newUTXOs.Serialize()))
+		}
+		return nil
+	}))
+}
