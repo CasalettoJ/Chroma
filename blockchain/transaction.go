@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"encoding/hex"
 	"fmt"
 )
 
@@ -28,6 +29,33 @@ func (tx *Transaction) SetID() {
 	CheckAnxiety(encoder.Encode(tx))
 	hash = sha256.Sum256(buffer.Bytes())
 	tx.ID = hash[:]
+}
+
+// NewTransaction returns a new transaction
+func NewTransaction(bc *Blockchain, to, from string, amount int) *Transaction {
+	var vin []TxInput
+	vout := []TxOutput{TxOutput{Value: amount, ScriptPubKey: to}}
+
+	totalIn, usedTxOutputs := FindUTXOsForPayment(bc, from, amount)
+
+	for txID, outputs := range usedTxOutputs {
+		txIDBytes, err := hex.DecodeString(txID)
+		CheckAnxiety(err)
+		for _, outputIndex := range outputs {
+			input := TxInput{Vout: outputIndex, ScriptSig: from, TxID: txIDBytes}
+			vin = append(vin, input)
+		}
+	}
+
+	if totalIn > amount {
+		change := TxOutput{Value: totalIn - amount, ScriptPubKey: from}
+		vout = append(vout, change)
+	}
+
+	newTx := Transaction{Vin: vin, Vout: vout}
+	newTx.SetID()
+
+	return &newTx
 }
 
 // NewCoinbaseTx returns a special TX to be awarded for mining a block.

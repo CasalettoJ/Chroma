@@ -6,6 +6,34 @@ import (
 	bolt "github.com/coreos/bbolt"
 )
 
+// FindUTXOsForPayment searches through the UTXOSet for unlockable UTXOs until the amount is reached
+// returns the amount of all retrieved UTXOs and a map of TxIDs and UTXO indices
+func FindUTXOsForPayment(bc *Blockchain, address string, amount int) (int, map[string][]int) {
+	accumulated := 0
+	UTXOIndices := make(map[string][]int)
+	db := bc.DB
+
+	CheckAnxiety(db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(DButxobucket))
+		cursor := bucket.Cursor()
+		for k, v := cursor.First(); k != nil || accumulated > amount; k, v = cursor.Next() {
+			txID := hex.EncodeToString(k)
+			UTXOs := DeserializeTxOutputs(v)
+			for UTXOIndex, UTXO := range UTXOs.Outputs {
+				if accumulated > amount {
+					break
+				}
+				if UTXO.Unlockable(address) {
+					accumulated += UTXO.Value
+					UTXOIndices[txID] = append(UTXOIndices[txID], UTXOIndex)
+				}
+			}
+		}
+		return nil
+	}))
+	return accumulated, UTXOIndices
+}
+
 // GetUTXOsForAddress returns all unspent tx outputs for a given address
 func GetUTXOsForAddress(bc *Blockchain, address string) []TxOutput {
 	db := bc.DB

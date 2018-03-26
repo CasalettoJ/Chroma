@@ -20,9 +20,22 @@ const (
 	CLIprintchain = "printchain"
 	// CLIgetbalance is the command for retrieving the balance of an address
 	CLIgetbalance = "getbalance"
+	// CLImineblock is the command for mining a new block
+	CLImineblock = "mineblock"
+	// CLInewtransaction is the command for creating a new pending transaction
+	CLInewtransaction = "newtransaction"
+	// CLIprintpendingtransactions is the command for printing all unmined transactions to the console
+	CLIprintpendingtransactions = "printpendingtransactions"
+
 	// CLIaddress is an option flag for an address
 	CLIaddress = "address"
+	// CLIfrom is the option flag for a sender address
+	CLIfrom = "from"
+	// CLIto is the option flag for a recipient address
+	CLIto = "to"
+	// CLIamount is the option flag for an amount of coins
+	CLIamount = "amount"
 
 	// TXcoinbaseaward is the amount of coins awarded for mining a block
-	TXcoinbaseaward = 10
+	TXcoinbaseaward = 1000
 )
