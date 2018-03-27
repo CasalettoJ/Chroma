@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/casalettoj/chroma/blockchain"
+	"github.com/casalettoj/chroma/cli"
 )
 
 func main() {
-	cli := &blockchain.CLI{}
-	cli.Run()
+	program := &cli.CLI{}
+	program.Run()
 }
 
 /*

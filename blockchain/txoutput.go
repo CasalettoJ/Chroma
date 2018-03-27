@@ -3,6 +3,8 @@ package blockchain
 import (
 	"bytes"
 	"encoding/gob"
+
+	util "github.com/casalettoj/chroma/utils"
 )
 
 // TxOutput represents a transaction output
@@ -25,7 +27,7 @@ type TxOutputs struct {
 func (txos *TxOutputs) Serialize() []byte {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
-	CheckAnxiety(encoder.Encode(txos))
+	util.CheckAnxiety(encoder.Encode(txos))
 	return result.Bytes()
 }
 
@@ -33,6 +35,6 @@ func (txos *TxOutputs) Serialize() []byte {
 func DeserializeTxOutputs(bbytes []byte) *TxOutputs {
 	var txOutputs TxOutputs
 	decoder := gob.NewDecoder(bytes.NewReader(bbytes))
-	CheckAnxiety(decoder.Decode(&txOutputs))
+	util.CheckAnxiety(decoder.Decode(&txOutputs))
 	return &txOutputs
 }

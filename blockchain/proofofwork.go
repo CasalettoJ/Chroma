@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+
+	util "github.com/casalettoj/chroma/utils"
 )
 
 const maxNonce = math.MaxInt64
@@ -30,9 +32,9 @@ func (pow *ProofOfWork) PrepareData(nonce int) []byte {
 	data := bytes.Join([][]byte{
 		pow.block.PrevHash,
 		pow.block.HashTransactions(),
-		Int64ToByteArray(pow.block.Timestamp),
-		Int64ToByteArray(int64(targetBits)),
-		Int64ToByteArray(int64(nonce)),
+		util.Int64ToByteArray(pow.block.Timestamp),
+		util.Int64ToByteArray(int64(targetBits)),
+		util.Int64ToByteArray(int64(nonce)),
 	}, []byte{})
 	return data
 }

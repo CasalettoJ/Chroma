@@ -1,4 +1,4 @@
-package blockchain
+package constants
 
 const (
 	// Message memes something
@@ -13,6 +13,9 @@ const (
 	DButxobucket = "utxoset"
 	// DBlasthash is the key the hash of the tip of the chain is stored in
 	DBlasthash = "lasthash"
+
+	// TXcoinbaseaward is the amount of coins awarded for mining a block
+	TXcoinbaseaward = 1000
 
 	// CLIcreateblockchain is the command to create a new DB
 	CLIcreateblockchain = "createblockchain"
@@ -31,7 +34,4 @@ const (
 	CLIto = "to"
 	// CLIamount is the option flag for an amount of coins
 	CLIamount = "amount"
-
-	// TXcoinbaseaward is the amount of coins awarded for mining a block
-	TXcoinbaseaward = 1000
 )

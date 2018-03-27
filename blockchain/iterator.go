@@ -1,6 +1,8 @@
 package blockchain
 
 import (
+	conf "github.com/casalettoj/chroma/constants"
+	util "github.com/casalettoj/chroma/utils"
 	bolt "github.com/coreos/bbolt"
 )
 
@@ -25,8 +27,8 @@ func (i *Iterator) IsGenesisBlock() bool {
 // Peek returns the block at the current hash of the iterator
 func (i *Iterator) Peek() *Block {
 	var block *Block
-	CheckAnxiety(i.DB.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DBblocksbucket))
+	util.CheckAnxiety(i.DB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(conf.DBblocksbucket))
 		encodedBlock := bucket.Get(i.CurrentHash)
 		block = DeserializeBlock(encodedBlock)
 		return nil

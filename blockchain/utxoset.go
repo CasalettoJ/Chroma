@@ -3,6 +3,8 @@ package blockchain
 import (
 	"encoding/hex"
 
+	conf "github.com/casalettoj/chroma/constants"
+	util "github.com/casalettoj/chroma/utils"
 	bolt "github.com/coreos/bbolt"
 )
 
@@ -13,8 +15,8 @@ func FindUTXOsForPayment(bc *Blockchain, address string, amount int) (int, map[s
 	UTXOIndices := make(map[string][]int)
 	db := bc.DB
 
-	CheckAnxiety(db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DButxobucket))
+	util.CheckAnxiety(db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(conf.DButxobucket))
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
 			txID := hex.EncodeToString(k)
@@ -38,8 +40,8 @@ func FindUTXOsForPayment(bc *Blockchain, address string, amount int) (int, map[s
 func GetUTXOsForAddress(bc *Blockchain, address string) []TxOutput {
 	db := bc.DB
 	var UTXOs []TxOutput
-	CheckAnxiety(db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DButxobucket))
+	util.CheckAnxiety(db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(conf.DButxobucket))
 		cursor := bucket.Cursor()
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
 			utxoutputs := DeserializeTxOutputs(v)
@@ -57,22 +59,22 @@ func GetUTXOsForAddress(bc *Blockchain, address string) []TxOutput {
 // ReindexUTXOs deletes the current UTXO set from db and creates a new set
 func ReindexUTXOs(bc *Blockchain) {
 	db := bc.DB
-	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
-		err := tx.DeleteBucket([]byte(DButxobucket))
+	util.CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
+		err := tx.DeleteBucket([]byte(conf.DButxobucket))
 		if err != bolt.ErrBucketNotFound {
-			CheckAnxiety(err)
+			util.CheckAnxiety(err)
 		}
-		_, err = tx.CreateBucket([]byte(DButxobucket))
-		CheckAnxiety(err)
+		_, err = tx.CreateBucket([]byte(conf.DButxobucket))
+		util.CheckAnxiety(err)
 		return nil
 	}))
 	UTXOsByTxID := bc.GetUTXOs()
-	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DButxobucket))
+	util.CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(conf.DButxobucket))
 		for txID, utxos := range UTXOsByTxID {
 			key, err := hex.DecodeString(txID)
-			CheckAnxiety(err)
-			CheckAnxiety(bucket.Put(key, utxos.Serialize()))
+			util.CheckAnxiety(err)
+			util.CheckAnxiety(bucket.Put(key, utxos.Serialize()))
 		}
 		return nil
 	}))
@@ -82,8 +84,8 @@ func ReindexUTXOs(bc *Blockchain) {
 // and adds the outputs of each Tx as new UTXOs in the set.
 func UpdateUTXOs(bc *Blockchain, b *Block) {
 	db := bc.DB
-	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
-		utxoBucket := tx.Bucket([]byte(DButxobucket))
+	util.CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
+		utxoBucket := tx.Bucket([]byte(conf.DButxobucket))
 		for _, transaction := range b.Transactions {
 			// If the tx is a coinbase tx, ignore the inputs entirely
 			if !transaction.IsCoinbaseTx() {
@@ -101,9 +103,9 @@ func UpdateUTXOs(bc *Blockchain, b *Block) {
 					// Then if the TX has no more UTXOs remove it from the bucket
 					// Otherwise, update the TXID-indexed TxOutputs with the updated structure
 					if len(updatedUTXOs.Outputs) == 0 {
-						CheckAnxiety(utxoBucket.Delete(input.TxID))
+						util.CheckAnxiety(utxoBucket.Delete(input.TxID))
 					} else {
-						CheckAnxiety(utxoBucket.Put(input.TxID, updatedUTXOs.Serialize()))
+						util.CheckAnxiety(utxoBucket.Put(input.TxID, updatedUTXOs.Serialize()))
 					}
 				}
 			}
@@ -113,7 +115,7 @@ func UpdateUTXOs(bc *Blockchain, b *Block) {
 			for _, output := range transaction.Vout {
 				newUTXOs.Outputs = append(newUTXOs.Outputs, output)
 			}
-			CheckAnxiety(utxoBucket.Put(transaction.ID, newUTXOs.Serialize()))
+			util.CheckAnxiety(utxoBucket.Put(transaction.ID, newUTXOs.Serialize()))
 		}
 		return nil
 	}))

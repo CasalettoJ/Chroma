@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"time"
+
+	util "github.com/casalettoj/chroma/utils"
 )
 
 // Block is the collection of data and headers for a single entry in the blockchain
@@ -20,7 +22,7 @@ type Block struct {
 func (b *Block) Serialize() []byte {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
-	CheckAnxiety(encoder.Encode(b))
+	util.CheckAnxiety(encoder.Encode(b))
 	return result.Bytes()
 }
 
@@ -40,7 +42,7 @@ func (b *Block) HashTransactions() []byte {
 func DeserializeBlock(bbytes []byte) *Block {
 	var block Block
 	decoder := gob.NewDecoder(bytes.NewReader(bbytes))
-	CheckAnxiety(decoder.Decode(&block))
+	util.CheckAnxiety(decoder.Decode(&block))
 	return &block
 }
 

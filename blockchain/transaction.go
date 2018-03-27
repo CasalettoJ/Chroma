@@ -7,6 +7,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+
+	conf "github.com/casalettoj/chroma/constants"
+	util "github.com/casalettoj/chroma/utils"
 )
 
 // Transaction is a collection of inputs and outputs with its hashed data as an ID
@@ -27,7 +30,7 @@ func (tx *Transaction) SetID() {
 	var hash [32]byte
 
 	encoder := gob.NewEncoder(&buffer)
-	CheckAnxiety(encoder.Encode(tx))
+	util.CheckAnxiety(encoder.Encode(tx))
 	hash = sha256.Sum256(buffer.Bytes())
 	tx.ID = hash[:]
 }
@@ -45,7 +48,7 @@ func NewTransaction(bc *Blockchain, to, from string, amount int) *Transaction {
 
 	for txID, outputs := range usedTxOutputs {
 		txIDBytes, err := hex.DecodeString(txID)
-		CheckAnxiety(err)
+		util.CheckAnxiety(err)
 		for _, outputIndex := range outputs {
 			input := TxInput{Vout: outputIndex, ScriptSig: from, TxID: txIDBytes}
 			vin = append(vin, input)
@@ -69,7 +72,7 @@ func NewCoinbaseTx(to, data string) *Transaction {
 		data = fmt.Sprintf("Coinbase award for %s", to)
 	}
 	txin := TxInput{TxID: []byte{}, Vout: -1, ScriptSig: data}
-	txout := TxOutput{Value: TXcoinbaseaward, ScriptPubKey: to}
+	txout := TxOutput{Value: conf.TXcoinbaseaward, ScriptPubKey: to}
 	tx := Transaction{ID: nil, Vin: []TxInput{txin}, Vout: []TxOutput{txout}}
 	tx.SetID()
 	return &tx

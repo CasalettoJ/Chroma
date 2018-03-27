@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	conf "github.com/casalettoj/chroma/constants"
+	util "github.com/casalettoj/chroma/utils"
 	bolt "github.com/coreos/bbolt"
 )
 
@@ -24,18 +26,18 @@ func (bc *Blockchain) Iterator() *Iterator {
 func (bc *Blockchain) MineBlock(Txs []*Transaction) *Block {
 	var lastHash []byte
 
-	CheckAnxiety(bc.DB.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DBblocksbucket))
-		lastHash = bucket.Get([]byte(DBlasthash))
+	util.CheckAnxiety(bc.DB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(conf.DBblocksbucket))
+		lastHash = bucket.Get([]byte(conf.DBlasthash))
 		return nil
 	}))
 
 	newBlock := NewBlock(Txs, lastHash)
 
-	CheckAnxiety(bc.DB.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DBblocksbucket))
-		CheckAnxiety(bucket.Put(newBlock.Hash, newBlock.Serialize()))
-		CheckAnxiety(bucket.Put([]byte(DBlasthash), newBlock.Hash))
+	util.CheckAnxiety(bc.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(conf.DBblocksbucket))
+		util.CheckAnxiety(bucket.Put(newBlock.Hash, newBlock.Serialize()))
+		util.CheckAnxiety(bucket.Put([]byte(conf.DBlasthash), newBlock.Hash))
 		bc.Tip = newBlock.Hash
 		return nil
 	}))
@@ -94,18 +96,18 @@ func (bc *Blockchain) GetUTXOs() map[string]TxOutputs {
 
 // OpenBlockchain opens a preexisting blockchain and returns Tip and DB
 func OpenBlockchain() *Blockchain {
-	if !DoesDBExist() {
+	if !util.DoesDBExist() {
 		fmt.Println("No existing Chroma chain.  Create DB first.")
 		os.Exit(1)
 	}
 
 	var tip []byte
-	db, err := bolt.Open(DBdbfile, 0600, nil)
-	CheckAnxiety(err)
+	db, err := bolt.Open(conf.DBdbfile, 0600, nil)
+	util.CheckAnxiety(err)
 
-	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DBblocksbucket))
-		tip = bucket.Get([]byte(DBlasthash))
+	util.CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(conf.DBblocksbucket))
+		tip = bucket.Get([]byte(conf.DBlasthash))
 		return nil
 	}))
 	bc := &Blockchain{DB: db, Tip: tip}
@@ -114,21 +116,21 @@ func OpenBlockchain() *Blockchain {
 
 // CreateBlockchain establishes a blockchain with a genesis block
 func CreateBlockchain(address string) *Blockchain {
-	if DoesDBExist() {
+	if util.DoesDBExist() {
 		fmt.Println("Chroma chain already exists.")
 		os.Exit(1)
 	}
 
 	var tip []byte
-	db, err := bolt.Open(DBdbfile, 0600, nil)
-	CheckAnxiety(err)
+	db, err := bolt.Open(conf.DBdbfile, 0600, nil)
+	util.CheckAnxiety(err)
 
-	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
-		genesisBlock := GenerateGenesisBlock(NewCoinbaseTx(address, Message))
-		bucket, err := tx.CreateBucket([]byte(DBblocksbucket))
-		CheckAnxiety(err)
-		CheckAnxiety(bucket.Put(genesisBlock.Hash, genesisBlock.Serialize()))
-		CheckAnxiety(bucket.Put([]byte(DBlasthash), genesisBlock.Hash))
+	util.CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
+		genesisBlock := GenerateGenesisBlock(NewCoinbaseTx(address, conf.Message))
+		bucket, err := tx.CreateBucket([]byte(conf.DBblocksbucket))
+		util.CheckAnxiety(err)
+		util.CheckAnxiety(bucket.Put(genesisBlock.Hash, genesisBlock.Serialize()))
+		util.CheckAnxiety(bucket.Put([]byte(conf.DBlasthash), genesisBlock.Hash))
 		tip = genesisBlock.Hash
 		return nil
 	}))
