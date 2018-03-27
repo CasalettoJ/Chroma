@@ -16,7 +16,7 @@ func FindUTXOsForPayment(bc *Blockchain, address string, amount int) (int, map[s
 	CheckAnxiety(db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(DButxobucket))
 		cursor := bucket.Cursor()
-		for k, v := cursor.First(); k != nil || accumulated > amount; k, v = cursor.Next() {
+		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
 			txID := hex.EncodeToString(k)
 			UTXOs := DeserializeTxOutputs(v)
 			for UTXOIndex, UTXO := range UTXOs.Outputs {
@@ -66,13 +66,13 @@ func ReindexUTXOs(bc *Blockchain) {
 		CheckAnxiety(err)
 		return nil
 	}))
-	UTXOs := bc.GetUTXOs()
+	UTXOsByTxID := bc.GetUTXOs()
 	CheckAnxiety(db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(DButxobucket))
-		for txID, utxo := range UTXOs {
+		for txID, utxos := range UTXOsByTxID {
 			key, err := hex.DecodeString(txID)
 			CheckAnxiety(err)
-			CheckAnxiety(bucket.Put(key, utxo.Serialize()))
+			CheckAnxiety(bucket.Put(key, utxos.Serialize()))
 		}
 		return nil
 	}))

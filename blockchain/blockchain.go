@@ -20,6 +20,29 @@ func (bc *Blockchain) Iterator() *Iterator {
 	return iterator
 }
 
+// MineBlock mines a block with the given transactions
+func (bc *Blockchain) MineBlock(Txs []*Transaction) *Block {
+	var lastHash []byte
+
+	CheckAnxiety(bc.DB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(DBblocksbucket))
+		lastHash = bucket.Get([]byte(DBlasthash))
+		return nil
+	}))
+
+	newBlock := NewBlock(Txs, lastHash)
+
+	CheckAnxiety(bc.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(DBblocksbucket))
+		CheckAnxiety(bucket.Put(newBlock.Hash, newBlock.Serialize()))
+		CheckAnxiety(bucket.Put([]byte(DBlasthash), newBlock.Hash))
+		bc.Tip = newBlock.Hash
+		return nil
+	}))
+
+	return newBlock
+}
+
 // GetUTXOs gets all UTXOs in the blockchain
 func (bc *Blockchain) GetUTXOs() map[string]TxOutputs {
 	UTXOs := make(map[string]TxOutputs)

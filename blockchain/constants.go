@@ -20,12 +20,8 @@ const (
 	CLIprintchain = "printchain"
 	// CLIgetbalance is the command for retrieving the balance of an address
 	CLIgetbalance = "getbalance"
-	// CLImineblock is the command for mining a new block
-	CLImineblock = "mineblock"
-	// CLInewtransaction is the command for creating a new pending transaction
-	CLInewtransaction = "newtransaction"
-	// CLIprintpendingtransactions is the command for printing all unmined transactions to the console
-	CLIprintpendingtransactions = "printpendingtransactions"
+	// CLIsend is the command for creating a new transaction
+	CLIsend = "send"
 
 	// CLIaddress is an option flag for an address
 	CLIaddress = "address"

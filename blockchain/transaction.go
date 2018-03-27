@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
+	"log"
 )
 
 // Transaction is a collection of inputs and outputs with its hashed data as an ID
@@ -37,6 +38,10 @@ func NewTransaction(bc *Blockchain, to, from string, amount int) *Transaction {
 	vout := []TxOutput{TxOutput{Value: amount, ScriptPubKey: to}}
 
 	totalIn, usedTxOutputs := FindUTXOsForPayment(bc, from, amount)
+
+	if totalIn < amount {
+		log.Panic(fmt.Printf("Insufficient Funds: Found %d and needed at least %d\nTx Found: %+v\n", totalIn, amount, usedTxOutputs))
+	}
 
 	for txID, outputs := range usedTxOutputs {
 		txIDBytes, err := hex.DecodeString(txID)
