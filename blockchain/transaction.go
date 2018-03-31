@@ -10,6 +10,7 @@ import (
 
 	conf "github.com/casalettoj/chroma/constants"
 	util "github.com/casalettoj/chroma/utils"
+	wallet "github.com/casalettoj/chroma/wallet"
 )
 
 // Transaction is a collection of inputs and outputs with its hashed data as an ID
@@ -36,11 +37,13 @@ func (tx *Transaction) SetID() {
 }
 
 // NewTransaction returns a new transaction
-func NewTransaction(bc *Blockchain, to, from string, amount int) *Transaction {
+func NewTransaction(bc *Blockchain, wallets *wallet.Wallets, to, from string, amount int) *Transaction {
 	var vin []TxInput
-	vout := []TxOutput{TxOutput{Value: amount, ScriptPubKey: to}}
+	vout := []TxOutput{*NewUTXO(amount, to)}
 
-	totalIn, usedTxOutputs := FindUTXOsForPayment(bc, from, amount)
+	fromWallet := wallets.GetWallet(from)
+	fromAddress := fromWallet.GetChromaAddress()
+	totalIn, usedTxOutputs := FindUTXOsForPayment(bc, fromAddress, amount)
 
 	if totalIn < amount {
 		log.Panic(fmt.Printf("Insufficient Funds: Found %d and needed at least %d\nTx Found: %+v\n", totalIn, amount, usedTxOutputs))
@@ -50,13 +53,13 @@ func NewTransaction(bc *Blockchain, to, from string, amount int) *Transaction {
 		txIDBytes, err := hex.DecodeString(txID)
 		util.CheckAnxiety(err)
 		for _, outputIndex := range outputs {
-			input := TxInput{Vout: outputIndex, ScriptSig: from, TxID: txIDBytes}
+			input := TxInput{Vout: outputIndex, Signature: nil, PubKey: fromWallet.PublicKey, TxID: txIDBytes}
 			vin = append(vin, input)
 		}
 	}
 
 	if totalIn > amount {
-		change := TxOutput{Value: totalIn - amount, ScriptPubKey: from}
+		change := *NewUTXO(totalIn-amount, from)
 		vout = append(vout, change)
 	}
 

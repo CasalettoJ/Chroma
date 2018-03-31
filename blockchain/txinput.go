@@ -1,13 +1,21 @@
 package blockchain
 
+import (
+	"bytes"
+
+	wallet "github.com/casalettoj/chroma/wallet"
+)
+
 // TxInput represents a transaction input
 type TxInput struct {
 	TxID      []byte
 	Vout      int
-	ScriptSig string
+	Signature []byte
+	PubKey    []byte
 }
 
-// InitiatedBy returns whether the input was initiated by a given address
-func (txi *TxInput) InitiatedBy(address string) bool {
-	return txi.ScriptSig == address
+// ScriptSigCheck returns whether the input was initiated by a given address
+func (txi *TxInput) ScriptSigCheck(pubKeyHash []byte) bool {
+	hashLock := wallet.HashPublicKey(txi.PubKey)
+	return bytes.Compare(hashLock, pubKeyHash) == 0
 }

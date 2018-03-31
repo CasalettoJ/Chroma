@@ -10,7 +10,7 @@ import (
 
 // FindUTXOsForPayment searches through the UTXOSet for unlockable UTXOs until the amount is reached
 // returns the amount of all retrieved UTXOs and a map of TxIDs and UTXO indices
-func FindUTXOsForPayment(bc *Blockchain, address string, amount int) (int, map[string][]int) {
+func FindUTXOsForPayment(bc *Blockchain, pubKeyHash []byte, amount int) (int, map[string][]int) {
 	accumulated := 0
 	UTXOIndices := make(map[string][]int)
 	db := bc.DB
@@ -25,7 +25,7 @@ func FindUTXOsForPayment(bc *Blockchain, address string, amount int) (int, map[s
 				if accumulated > amount {
 					break
 				}
-				if UTXO.Unlockable(address) {
+				if UTXO.Unlockable(pubKeyHash) {
 					accumulated += UTXO.Value
 					UTXOIndices[txID] = append(UTXOIndices[txID], UTXOIndex)
 				}
@@ -37,7 +37,7 @@ func FindUTXOsForPayment(bc *Blockchain, address string, amount int) (int, map[s
 }
 
 // GetUTXOsForAddress returns all unspent tx outputs for a given address
-func GetUTXOsForAddress(bc *Blockchain, address string) []TxOutput {
+func GetUTXOsForAddress(bc *Blockchain, pubKeyHash []byte) []TxOutput {
 	db := bc.DB
 	var UTXOs []TxOutput
 	util.CheckAnxiety(db.View(func(tx *bolt.Tx) error {
@@ -46,7 +46,7 @@ func GetUTXOsForAddress(bc *Blockchain, address string) []TxOutput {
 		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
 			utxoutputs := DeserializeTxOutputs(v)
 			for _, utxo := range utxoutputs.Outputs {
-				if utxo.Unlockable(address) {
+				if utxo.Unlockable(pubKeyHash) {
 					UTXOs = append(UTXOs, utxo)
 				}
 			}

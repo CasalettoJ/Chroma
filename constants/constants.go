@@ -34,4 +34,13 @@ const (
 	CLIto = "to"
 	// CLIamount is the option flag for an amount of coins
 	CLIamount = "amount"
+
+	// Version is the 1-byte version of the wallet.
+	Version = byte(0x00)
+	// UncompressedPubKeyPrefix is the 1-byte prefix of an uncompressed public key. Like bitcoin!
+	UncompressedPubKeyPrefix = byte(0x04)
+	// WalletFile is the wallet filename
+	WalletFile = "wallet.dat"
+	// AddressChecksumLen is the number of bytes to take after hashing public key for checksum
+	AddressChecksumLen = 4
 )
