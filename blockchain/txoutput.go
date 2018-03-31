@@ -14,8 +14,8 @@ type TxOutput struct {
 	PubKeyHash []byte
 }
 
-// Lock locks a TxO to a specific public key hash (1:len-4 bytes)
-func (txo *TxOutput) Lock(address []byte) {
+// LockTxO locks a TxO to a specific public key hash (1:len-4 bytes)
+func (txo *TxOutput) LockTxO(address []byte) {
 	pubKeyHash := base58.Decode(string(address[:]))
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4] //Start at 1 for the version byte, stop 4 early for the checksum bytes
 	txo.PubKeyHash = pubKeyHash
@@ -29,7 +29,7 @@ func (txo *TxOutput) Unlockable(pubKeyHash []byte) bool {
 // NewUTXO creates a new transaction for a value and pubkeyhash string
 func NewUTXO(value int, address string) *TxOutput {
 	utxo := &TxOutput{Value: value, PubKeyHash: nil}
-	utxo.Lock([]byte(address))
+	utxo.LockTxO([]byte(address))
 	return utxo
 }
 

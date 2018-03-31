@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"bytes"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
@@ -72,10 +73,13 @@ func NewTransaction(bc *Blockchain, wallets *wallet.Wallets, to, from string, am
 // NewCoinbaseTx returns a special TX to be awarded for mining a block.
 func NewCoinbaseTx(to, data string) *Transaction {
 	if data == "" {
-		data = fmt.Sprintf("Coinbase award for %s", to)
+		randomData := make([]byte, 20)
+		_, err := rand.Read(randomData)
+		util.CheckAnxiety(err)
+		data = string(randomData)
 	}
-	txin := TxInput{TxID: []byte{}, Vout: -1, ScriptSig: data}
-	txout := TxOutput{Value: conf.TXcoinbaseaward, ScriptPubKey: to}
+	txin := TxInput{TxID: []byte{}, Vout: -1, Signature: nil, PubKey: []byte(data)}
+	txout := *NewUTXO(conf.TXcoinbaseaward, to)
 	tx := Transaction{ID: nil, Vin: []TxInput{txin}, Vout: []TxOutput{txout}}
 	tx.SetID()
 	return &tx
