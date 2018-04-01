@@ -72,6 +72,7 @@ func NewTransaction(bc *Blockchain, wallets *wallet.Wallets, to, from string, am
 
 // NewCoinbaseTx returns a special TX to be awarded for mining a block.
 func NewCoinbaseTx(to, data string) *Transaction {
+	// Fill pubkey with random data
 	if data == "" {
 		randomData := make([]byte, 20)
 		_, err := rand.Read(randomData)
