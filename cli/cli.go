@@ -5,94 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	chroma "github.com/casalettoj/chroma/blockchain"
 	conf "github.com/casalettoj/chroma/constants"
 	util "github.com/casalettoj/chroma/utils"
 )
 
-// CLI holds a blockchain and operates with it for given flags
-type CLI struct{}
-
-// CreateBlockchain creates a blockchain db
-func (cli *CLI) CreateBlockchain(address string) {
-	bc := chroma.CreateBlockchain(address)
-	defer bc.DB.Close()
-	chroma.ReindexUTXOs(bc)
-	fmt.Println("CHROMA chain created")
-}
-
-// PrintChain iterates through the chain and prints the data of each
-func (cli *CLI) PrintChain() {
-	bc := chroma.OpenBlockchain()
-	defer bc.DB.Close()
-	bci := bc.Iterator()
-
-	for {
-		fmt.Println()
-		fmt.Println("===============================================")
-		block := bci.Next()
-		if block.PrevHash != nil {
-			fmt.Printf("Prev. hash: %x\n", block.PrevHash)
-		}
-		fmt.Printf("Tx Hash: %x\n", block.HashTransactions())
-		fmt.Printf("Hash: %x\n", block.Hash)
-		fmt.Println("Transactions:")
-		for i, tx := range block.Transactions {
-			fmt.Println()
-			if i != 0 {
-				fmt.Println("____________")
-			}
-			fmt.Printf("TX %d: %d inputs %d outputs\n", i, len(tx.Vin), len(tx.Vout))
-			fmt.Println()
-			for j, input := range tx.Vin {
-				fmt.Printf("Input %d:\n%+v\n", j, input)
-			}
-			fmt.Println()
-			for j, output := range tx.Vout {
-				fmt.Printf("Output %d:\n%+v\n", j, output)
-			}
-		}
-		fmt.Println("===============================================")
-		fmt.Println()
-		if bci.IsGenesisBlock() {
-			break
-		}
-	}
-}
-
-// GetBalance prints the balance of a given address to the console
-func (cli *CLI) GetBalance(address string) {
-	total := 0
-	bc := chroma.OpenBlockchain()
-	defer bc.DB.Close()
-	UTXOs := chroma.GetUTXOsForAddress(bc, address)
-
-	for _, UTXO := range UTXOs {
-		total += UTXO.Value
-	}
-	fmt.Printf("Balance of '%s': %d\n", address, total)
-}
-
-// Send creates a TX and CoinbaseTX and mines a new transaction
-func (cli *CLI) Send(from, to string, amount int) {
-	if amount <= 0 {
-		fmt.Println("Invalid amount.")
-		os.Exit(1)
-	}
-
-	bc := chroma.OpenBlockchain()
-	defer bc.DB.Close()
-
-	newTx := chroma.NewTransaction(bc, to, from, amount)
-	coinbaseTx := chroma.NewCoinbaseTx(from, "")
-	Txs := []*chroma.Transaction{coinbaseTx, newTx}
-	newBlock := bc.MineBlock(Txs)
-	chroma.UpdateUTXOs(bc, newBlock)
-	fmt.Printf("Sent %d to %s.", amount, to)
-}
-
 // Run runs cli flags
-func (cli *CLI) Run() {
+func Run() {
 	ValidateArgs()
 	createBlockchainCommand := flag.NewFlagSet(conf.CLIcreateblockchain, flag.PanicOnError)
 	createAddress := createBlockchainCommand.String(conf.CLIaddress, "", "Reward Address")
@@ -121,23 +39,23 @@ func (cli *CLI) Run() {
 	}
 
 	if printChainCommand.Parsed() {
-		cli.PrintChain()
+		PrintChain()
 	}
 
 	if createBlockchainCommand.Parsed() {
 		ValidateRequiredOption(*createAddress)
-		cli.CreateBlockchain(*createAddress)
+		CreateBlockchain(*createAddress)
 	}
 
 	if getBalanceCommand.Parsed() {
 		ValidateRequiredOption(*balanceAddress)
-		cli.GetBalance(*balanceAddress)
+		GetBalance(*balanceAddress)
 	}
 
 	if sendCommand.Parsed() {
 		ValidateRequiredOption(*sendTo)
 		ValidateRequiredOption(*sendFrom)
-		cli.Send(*sendFrom, *sendTo, *sendAmount)
+		Send(*sendFrom, *sendTo, *sendAmount)
 	}
 }
 
