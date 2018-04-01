@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/btcsuite/btcutil/base58"
+
 	conf "github.com/casalettoj/chroma/constants"
 	util "github.com/casalettoj/chroma/utils"
 	wallet "github.com/casalettoj/chroma/wallet"
@@ -44,7 +46,9 @@ func NewTransaction(bc *Blockchain, wallets *wallet.Wallets, to, from string, am
 
 	fromWallet := wallets.GetWallet(from)
 	fromAddress := fromWallet.GetChromaAddress()
-	totalIn, usedTxOutputs := FindUTXOsForPayment(bc, fromAddress, amount)
+	fromPubKeyHash := base58.Decode(string(fromAddress))
+	fromPubKeyHash = fromPubKeyHash[1 : len(fromPubKeyHash)-4]
+	totalIn, usedTxOutputs := FindUTXOsForPayment(bc, fromPubKeyHash, amount)
 
 	if totalIn < amount {
 		log.Panic(fmt.Printf("Insufficient Funds: Found %d and needed at least %d\nTx Found: %+v\n", totalIn, amount, usedTxOutputs))

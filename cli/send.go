@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/casalettoj/chroma/wallet"
+
 	chroma "github.com/casalettoj/chroma/blockchain"
 )
 
@@ -17,10 +19,12 @@ func Send(from, to string, amount int) {
 	bc := chroma.OpenBlockchain()
 	defer bc.DB.Close()
 
-	newTx := chroma.NewTransaction(bc, to, from, amount)
+	wallets := wallet.OpenWallets()
+
+	newTx := chroma.NewTransaction(bc, wallets, to, from, amount)
 	coinbaseTx := chroma.NewCoinbaseTx(from, "")
 	Txs := []*chroma.Transaction{coinbaseTx, newTx}
 	newBlock := bc.MineBlock(Txs)
 	chroma.UpdateUTXOs(bc, newBlock)
-	fmt.Printf("Sent %d to %s.", amount, to)
+	fmt.Printf("Sent %d to %s.\n", amount, to)
 }

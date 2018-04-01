@@ -25,6 +25,10 @@ const (
 	CLIgetbalance = "getbalance"
 	// CLIsend is the command for creating a new transaction
 	CLIsend = "send"
+	// CLInewwallet is the command for creating a new wallet keypair
+	CLInewwallet = "newwallet"
+	// CLIprintwallets is the command for showing all public addresses
+	CLIprintwallets = "printwallets"
 
 	// CLIaddress is an option flag for an address
 	CLIaddress = "address"

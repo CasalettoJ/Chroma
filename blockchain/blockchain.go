@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/btcsuite/btcutil/base58"
+
 	conf "github.com/casalettoj/chroma/constants"
 	util "github.com/casalettoj/chroma/utils"
 	bolt "github.com/coreos/bbolt"
@@ -14,6 +16,20 @@ import (
 type Blockchain struct {
 	Tip []byte
 	DB  *bolt.DB
+}
+
+// GetBalance returns the balance of the address given for the current bc
+func (bc *Blockchain) GetBalance(address string) int {
+	total := 0
+	pubKeyHash := base58.Decode(address)
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+
+	UTXOs := GetUTXOsForAddress(bc, pubKeyHash)
+
+	for _, UTXO := range UTXOs {
+		total += UTXO.Value
+	}
+	return total
 }
 
 // Iterator give iterator

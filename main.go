@@ -1,12 +1,11 @@
 package main
 
 import (
-	"github.com/casalettoj/chroma/cli"
+	cli "github.com/casalettoj/chroma/cli"
 )
 
 func main() {
-	program := &cli.CLI{}
-	program.Run()
+	cli.Run()
 }
 
 /*

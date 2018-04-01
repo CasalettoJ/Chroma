@@ -11,10 +11,7 @@ func GetBalance(address string) {
 	total := 0
 	bc := chroma.OpenBlockchain()
 	defer bc.DB.Close()
-	UTXOs := chroma.GetUTXOsForAddress(bc, address)
+	bc.GetBalance(address)
 
-	for _, UTXO := range UTXOs {
-		total += UTXO.Value
-	}
 	fmt.Printf("Balance of '%s': %d\n", address, total)
 }
