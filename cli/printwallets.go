@@ -7,8 +7,8 @@ import (
 	"github.com/casalettoj/chroma/wallet"
 )
 
-// PrintWallets prints the address of every wallet in the wallet file.
-func PrintWallets() {
+// printWallets prints the address of every wallet in the wallet file.
+func printWallets() {
 	bc := blockchain.OpenBlockchain()
 	wallets := wallet.OpenWallets()
 	fmt.Println("Wallet Addresses:")

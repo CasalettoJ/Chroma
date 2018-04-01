@@ -6,8 +6,8 @@ import (
 	"github.com/casalettoj/chroma/wallet"
 )
 
-// CreateNewWallet creates a new private/public key pair and adds it to the wallets file.
-func CreateNewWallet() {
+// createNewWallet creates a new private/public key pair and adds it to the wallets file.
+func createNewWallet() {
 	wallets := wallet.OpenWallets()
 	address := wallets.AddNewWallet()
 	wallets.SaveWallets()

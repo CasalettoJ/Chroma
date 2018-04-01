@@ -11,7 +11,7 @@ import (
 
 // Run runs cli flags
 func Run() {
-	ValidateArgs()
+	validateArgs()
 	createBlockchainCommand := flag.NewFlagSet(conf.CLIcreateblockchain, flag.PanicOnError)
 	createAddress := createBlockchainCommand.String(conf.CLIaddress, "", "Reward Address")
 
@@ -43,47 +43,47 @@ func Run() {
 	case conf.CLIprintwallets:
 		util.CheckAnxiety(printWalletsCommand.Parse(os.Args[2:]))
 	default:
-		Failure()
+		failure()
 	}
 
 	if printChainCommand.Parsed() {
-		PrintChain()
+		printChain()
 	}
 
 	if createBlockchainCommand.Parsed() {
-		ValidateRequiredOption(*createAddress)
-		CreateBlockchain(*createAddress)
+		validateRequiredOption(*createAddress)
+		createBlockchain(*createAddress)
 	}
 
 	if getBalanceCommand.Parsed() {
-		ValidateRequiredOption(*balanceAddress)
-		GetBalance(*balanceAddress)
+		validateRequiredOption(*balanceAddress)
+		getBalance(*balanceAddress)
 	}
 
 	if sendCommand.Parsed() {
-		ValidateRequiredOption(*sendTo)
-		ValidateRequiredOption(*sendFrom)
-		Send(*sendFrom, *sendTo, *sendAmount)
+		validateRequiredOption(*sendTo)
+		validateRequiredOption(*sendFrom)
+		send(*sendFrom, *sendTo, *sendAmount)
 	}
 
 	if newWalletCommand.Parsed() {
-		CreateNewWallet()
+		createNewWallet()
 	}
 
 	if printWalletsCommand.Parsed() {
-		PrintWallets()
+		printWallets()
 	}
 }
 
-// ValidateRequiredOption quits if an option is not supplied
-func ValidateRequiredOption(option string) {
+// validateRequiredOption quits if an option is not supplied
+func validateRequiredOption(option string) {
 	if option == "" {
-		Failure()
+		failure()
 	}
 }
 
-// PrintHelp prints CLI usage
-func PrintHelp() {
+// printHelp prints CLI usage
+func printHelp() {
 	fmt.Println("Usage: ")
 	fmt.Println("  getbalance -address {ADDRESS} - Get balance of ADDRESS")
 	fmt.Println("  newwallet - Create a new CHROMA address")
@@ -93,15 +93,15 @@ func PrintHelp() {
 	fmt.Println("  send -from {FROM} -to {TO} -amount {AMOUNT} - Send AMOUNT of coins from FROM address to TO")
 }
 
-// Failure prints CLI usage and exits with an error
-func Failure() {
-	PrintHelp()
+// failure prints CLI usage and exits with an error
+func failure() {
+	printHelp()
 	os.Exit(1)
 }
 
-// ValidateArgs ensures flag validity
-func ValidateArgs() {
+// validateArgs ensures flag validity
+func validateArgs() {
 	if len(os.Args) < 2 {
-		Failure()
+		failure()
 	}
 }

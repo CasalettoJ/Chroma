@@ -6,8 +6,8 @@ import (
 	chroma "github.com/casalettoj/chroma/blockchain"
 )
 
-// CreateBlockchain creates a blockchain db
-func CreateBlockchain(address string) {
+// createBlockchain creates a blockchain db
+func createBlockchain(address string) {
 	bc := chroma.CreateBlockchain(address)
 	defer bc.DB.Close()
 	chroma.ReindexUTXOs(bc)

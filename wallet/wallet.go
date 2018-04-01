@@ -22,7 +22,7 @@ type Wallet struct {
 func (wa *Wallet) GetChromaAddress() []byte {
 	hashedKey := HashPublicKey(wa.PublicKey)
 	payload := append([]byte{conf.Version}, hashedKey...)
-	checksum := Checksum(payload)
+	checksum := checksum(payload)
 	address := base58.Encode(append(payload, checksum...))
 	return []byte(address)
 }
@@ -46,8 +46,8 @@ func HashPublicKey(pk []byte) []byte {
 	return RIPEMD160hasher.Sum(nil)
 }
 
-// Checksum hashes a byte array twice with sha256 and returns a bytearray of AddressChecksumLen length
-func Checksum(pl []byte) []byte {
+// checksum hashes a byte array twice with sha256 and returns a bytearray of AddressChecksumLen length
+func checksum(pl []byte) []byte {
 	hashedKey := sha256.Sum256(pl)
 	hashedKey = sha256.Sum256(hashedKey[:])
 	return hashedKey[:conf.AddressChecksumLen]

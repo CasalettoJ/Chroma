@@ -9,8 +9,8 @@ import (
 	chroma "github.com/casalettoj/chroma/blockchain"
 )
 
-// Send creates a TX and CoinbaseTX and mines a new transaction
-func Send(from, to string, amount int) {
+// send creates a TX and CoinbaseTX and mines a new transaction
+func send(from, to string, amount int) {
 	if amount <= 0 {
 		fmt.Println("Invalid amount.")
 		os.Exit(1)
