@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
+	"strings"
 	"time"
 
 	util "github.com/casalettoj/chroma/utils"
@@ -39,7 +40,8 @@ func (b *Block) HashTransactions() []byte {
 	return txHash[:]
 }
 
-func (b *Block) String() (lines []string) {
+func (b *Block) String() string {
+	var lines []string
 	lines = append(lines, fmt.Sprintf("====BLOCK %x====\n", b.Hash))
 	if b.PrevHash != nil {
 		lines = append(lines, fmt.Sprintf("Prev. hash: %x\n", b.PrevHash))
@@ -47,9 +49,9 @@ func (b *Block) String() (lines []string) {
 	lines = append(lines, fmt.Sprintf("Tx Hash: %x\n", b.HashTransactions()))
 	lines = append(lines, fmt.Sprintln("Transactions:"))
 	for _, tx := range b.Transactions {
-		lines = append(lines, tx.String()...)
+		lines = append(lines, fmt.Sprintln(tx))
 	}
-	return
+	return strings.Join(lines, "")
 }
 
 // DeserializeBlock deserializes a byte array into a Block struct

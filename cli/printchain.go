@@ -15,10 +15,7 @@ func printChain() {
 	for {
 		fmt.Println()
 		block := bci.Next()
-		blockStrings := block.String()
-		for _, s := range blockStrings {
-			fmt.Printf("%s", s)
-		}
+		fmt.Println(block)
 		fmt.Println()
 		if bci.IsGenesisBlock() {
 			break

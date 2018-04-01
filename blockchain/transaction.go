@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/btcsuite/btcutil/base58"
 
@@ -39,7 +40,8 @@ func (tx *Transaction) SetID() {
 	tx.ID = hash[:]
 }
 
-func (tx *Transaction) String() (lines []string) {
+func (tx *Transaction) String() string {
+	var lines []string
 	lines = append(lines, fmt.Sprintf("___TX %x: (Vin: %d, Vout: %d)___\n", tx.ID, len(tx.Vin), len(tx.Vout)))
 	for i, input := range tx.Vin {
 		lines = append(lines, fmt.Sprintf("Input %d:\nTxID: %x\nVout: %d\nSig: %x\nPubKey: %x\n", i, input.TxID, input.Vout, input.Signature, input.PubKey))
@@ -50,7 +52,7 @@ func (tx *Transaction) String() (lines []string) {
 		lines = append(lines, fmt.Sprintf("Output %d:\nValue: %d\nPubKeyHash: %x\n", i, output.Value, output.PubKeyHash))
 	}
 	lines = append(lines, fmt.Sprintf("___\n\n"))
-	return
+	return strings.Join(lines, "")
 }
 
 // NewTransaction returns a new transaction
