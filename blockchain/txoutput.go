@@ -27,10 +27,10 @@ func (txo *TxOutput) Unlockable(pubKeyHash []byte) bool {
 }
 
 // NewUTXO creates a new transaction for a value and pubkeyhash string
-func NewUTXO(value int, address string) *TxOutput {
-	utxo := &TxOutput{Value: value, PubKeyHash: nil}
+func NewUTXO(value int, address string) (utxo *TxOutput) {
+	utxo = &TxOutput{Value: value, PubKeyHash: nil}
 	utxo.LockTxO([]byte(address))
-	return utxo
+	return
 }
 
 // TxOutputs is a structure containing an array of TXOs
@@ -46,7 +46,7 @@ func (txos *TxOutputs) Serialize() []byte {
 	return result.Bytes()
 }
 
-// DeserializeTxOutputs deserializes a byte array into a Block struct
+// DeserializeTxOutputs deserializes a byte array into a TxOutputs struct
 func DeserializeTxOutputs(bbytes []byte) *TxOutputs {
 	var txOutputs TxOutputs
 	decoder := gob.NewDecoder(bytes.NewReader(bbytes))

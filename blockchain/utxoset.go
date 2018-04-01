@@ -10,9 +10,8 @@ import (
 
 // FindUTXOsForPayment searches through the UTXOSet for unlockable UTXOs until the amount is reached
 // returns the amount of all retrieved UTXOs and a map of TxIDs and UTXO indices
-func FindUTXOsForPayment(bc *Blockchain, pubKeyHash []byte, amount int) (int, map[string][]int) {
-	accumulated := 0
-	UTXOIndices := make(map[string][]int)
+func FindUTXOsForPayment(bc *Blockchain, pubKeyHash []byte, amount int) (accumulated int, UTXOIndices map[string][]int) {
+	UTXOIndices = make(map[string][]int)
 	db := bc.DB
 
 	util.CheckAnxiety(db.View(func(tx *bolt.Tx) error {
@@ -33,13 +32,12 @@ func FindUTXOsForPayment(bc *Blockchain, pubKeyHash []byte, amount int) (int, ma
 		}
 		return nil
 	}))
-	return accumulated, UTXOIndices
+	return
 }
 
 // GetUTXOsForAddress returns all unspent tx outputs for a given address
-func GetUTXOsForAddress(bc *Blockchain, pubKeyHash []byte) []TxOutput {
+func GetUTXOsForAddress(bc *Blockchain, pubKeyHash []byte) (UTXOs []TxOutput) {
 	db := bc.DB
-	var UTXOs []TxOutput
 	util.CheckAnxiety(db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(conf.DButxobucket))
 		cursor := bucket.Cursor()
@@ -53,7 +51,7 @@ func GetUTXOsForAddress(bc *Blockchain, pubKeyHash []byte) []TxOutput {
 		}
 		return nil
 	}))
-	return UTXOs
+	return
 }
 
 // ReindexUTXOs deletes the current UTXO set from db and creates a new set

@@ -17,11 +17,11 @@ type Wallets struct {
 }
 
 // AddNewWallet creates a new private/public key pair and adds it to the wallet.
-func (ws *Wallets) AddNewWallet() string {
+func (ws *Wallets) AddNewWallet() (address string) {
 	wallet := NewWallet()
-	address := string(wallet.GetChromaAddress())
+	address = string(wallet.GetChromaAddress())
 	ws.Wallets[address] = wallet
-	return address
+	return
 }
 
 // GetWallet returns the wallet stored at the address specified
@@ -30,12 +30,11 @@ func (ws Wallets) GetWallet(address string) Wallet {
 }
 
 // GetAddresses returns a string array of address keys in the Wallets collection
-func (ws *Wallets) GetAddresses() []string {
-	var addresses []string
+func (ws *Wallets) GetAddresses() (addresses []string) {
 	for k := range ws.Wallets {
 		addresses = append(addresses, k)
 	}
-	return addresses
+	return
 }
 
 // SaveWallets saves the wallets data to a file
