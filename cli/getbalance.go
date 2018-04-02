@@ -3,13 +3,13 @@ package cli
 import (
 	"fmt"
 
-	chroma "github.com/casalettoj/chroma/blockchain"
+	"github.com/casalettoj/chroma/blockchain"
 )
 
 // getBalance prints the balance of a given address to the console
 func getBalance(address string) {
 	total := 0
-	bc := chroma.OpenBlockchain()
+	bc := blockchain.OpenBlockchain()
 	defer bc.DB.Close()
 	bc.GetBalance(address)
 

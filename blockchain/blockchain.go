@@ -1,8 +1,12 @@
 package blockchain
 
 import (
+	"bytes"
+	"crypto/ecdsa"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/btcsuite/btcutil/base58"
@@ -32,6 +36,49 @@ func (bc *Blockchain) GetBalance(address string) int {
 	return total
 }
 
+// FindTransaction traverses the blockchain looking for the TX matching ID
+func (bc *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
+	bci := bc.Iterator()
+	for {
+		block := bci.Next()
+		for _, tx := range block.Transactions {
+			if bytes.Compare(tx.ID, ID) == 0 {
+				fmt.Println("found")
+				return *tx, nil
+			}
+		}
+		if bci.IsGenesisBlock() {
+			break
+		}
+	}
+	return Transaction{}, errors.New("tx Not found in chain")
+}
+
+// SignTransaction signs a transaction with a private key
+func (bc *Blockchain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey) {
+	prevTxs := make(map[string]Transaction)
+	for _, vin := range tx.Vin {
+		prevTx, err := bc.FindTransaction(vin.TxID)
+		util.CheckAnxiety(err)
+		prevTxs[hex.EncodeToString(prevTx.ID)] = prevTx
+	}
+	tx.Sign(privateKey, prevTxs)
+}
+
+// VerifyTransaction verifies the signatures of a transaction's inputs
+func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
+	prevTxs := make(map[string]Transaction)
+	for _, vin := range tx.Vin {
+		prevTx, err := bc.FindTransaction(vin.TxID)
+		if err != nil {
+			return false
+		}
+		prevTxs[hex.EncodeToString(prevTx.ID)] = prevTx
+	}
+	verified := tx.Verify(prevTxs)
+	return verified
+}
+
 // Iterator give iterator
 func (bc *Blockchain) Iterator() *Iterator {
 	iterator := &Iterator{bc.Tip, bc.DB}
@@ -41,6 +88,12 @@ func (bc *Blockchain) Iterator() *Iterator {
 // MineBlock mines a block with the given transactions
 func (bc *Blockchain) MineBlock(Txs []*Transaction) *Block {
 	var lastHash []byte
+
+	for _, tx := range Txs {
+		if !bc.VerifyTransaction(tx) {
+			log.Panic("ERROR: Invalid Tx in Block")
+		}
+	}
 
 	util.CheckAnxiety(bc.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(conf.DBblocksbucket))

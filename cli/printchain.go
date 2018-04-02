@@ -3,12 +3,12 @@ package cli
 import (
 	"fmt"
 
-	chroma "github.com/casalettoj/chroma/blockchain"
+	"github.com/casalettoj/chroma/blockchain"
 )
 
 // printChain iterates through the chain and prints the data of each
 func printChain() {
-	bc := chroma.OpenBlockchain()
+	bc := blockchain.OpenBlockchain()
 	defer bc.DB.Close()
 	bci := bc.Iterator()
 
