@@ -41,9 +41,9 @@ func (bc *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 	bci := bc.Iterator()
 	for {
 		block := bci.Next()
+		fmt.Println(len(block.Transactions))
 		for _, tx := range block.Transactions {
 			if bytes.Compare(tx.ID, ID) == 0 {
-				fmt.Println("found")
 				return *tx, nil
 			}
 		}
@@ -67,6 +67,9 @@ func (bc *Blockchain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateK
 
 // VerifyTransaction verifies the signatures of a transaction's inputs
 func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
+	if tx.IsCoinbaseTx() {
+		return true
+	}
 	prevTxs := make(map[string]Transaction)
 	for _, vin := range tx.Vin {
 		prevTx, err := bc.FindTransaction(vin.TxID)
